@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Railsのバージョンを下げる手順マニュアル</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #020617;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56,189,248,0.15);
+      --text-main: #e5e7eb;
+      --text-sub: #9ca3af;
+      --border: #1f2937;
+      --danger: #f97373;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 50%, #020617 100%);
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+    .wrapper {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 24px 16px 80px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    header h1 {
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+    header p {
+      margin-top: 8px;
+      color: var(--text-sub);
+      font-size: 0.95rem;
+    }
+    .tagline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.8);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-size: 0.75rem;
+      margin-bottom: 10px;
+    }
+    .tag-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(56,189,248,0.9);
+    }
+
+    .slides-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .slide {
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.12), transparent 55%),
+                  radial-gradient(circle at bottom right, rgba(59,130,246,0.12), transparent 55%),
+                  var(--card);
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 18px 40px rgba(15,23,42,0.8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(145deg, rgba(148,163,184,0.08), transparent 40%, rgba(56,189,248,0.12));
+      mix-blend-mode: screen;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .slide-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .slide-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--accent);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .slide-index {
+      font-weight: 600;
+      opacity: 0.7;
+    }
+
+    .slide-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .slide-main {
+      font-size: 0.87rem;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .slide-sub {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(148,163,184,0.55);
+      font-size: 0.72rem;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+
+    .pill span {
+      font-size: 0.8rem;
+      color: var(--accent);
+    }
+
+    .code-inline {
+      font-family: SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.8rem;
+      background: rgba(15,23,42,0.9);
+      border-radius: 6px;
+      padding: 2px 5px;
+      border: 1px solid rgba(75,85,99,0.9);
+    }
+
+    .section-title {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: var(--text-sub);
+      margin: 28px 0 12px;
+    }
+
+    .section-title span {
+      color: var(--accent);
+    }
+
+    .tips {
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: var(--text-sub);
+    }
+
+    .tips-strong {
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    .divider {
+      margin: 36px 0 24px;
+      height: 1px;
+      background: radial-gradient(circle, rgba(148,163,184,0.6) 0, transparent 70%);
+      opacity: 0.5;
+    }
+
+    .footer-note {
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      text-align: center;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .slide {
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+      .slide:hover {
+        transform: translateY(-4px) scale(1.01);
+        box-shadow: 0 24px 60px rgba(15,23,42,0.95);
+        border-color: rgba(56,189,248,0.6);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <header>
+      <div class="tagline">
+        <span class="tag-dot"></span>
+        <span>Railsダウングレード完全ガイド（1ページ版）</span>
+      </div>
+      <h1>Railsのバージョンを下げる手順マニュアル</h1>
+      <p>「グローバル」と「アプリごと」の違いを押さえて、安全にバージョンを下げるためのスライド風まとめ。</p>
+    </header>
+
+    <div class="section-title"><span>slide 1</span> / 基本の考え方</div>
+    <div class="slides-grid">
+      <section class="slide">
+        <div class="slide-inner">
+          <div class="slide-label">
+            <span>concept</span>
+            <span class="slide-index">01</span>
+          </div>
+          <h2 class="slide-title">Railsのバージョンは「2種類」ある</h2>
+          <p class="slide-main">
+            1つは <span class="code-inline">rails -v</span> で出る「グローバルRails」。もう1つは、アプリの <span class="code-inline">Gemfile</span> で指定される「アプリ専用Rails」です。
+          </p>
+          <p class="slide-sub">
+            既存アプリのバージョンを下げたいときに触るのは、基本的に「アプリ専用Rails」です。
+          </p>
+          <div class="pill"><span>ポイント</span> 既存アプリは「Gemfile」をいじるのが本丸</div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-inner">
+          <div class="slide-label">
+            <span>checklist</span>
+            <span class="slide-index">02</span>
+          </div>
+          <h2 class="slide-title">ダウングレード前の3つの確認</h2>
+          <p class="slide-main">
+            ① Git やフォルダコピーで必ずバックアップを取る。<br>
+            ② 現在の Rails バージョンをメモ（<span class="code-inline">rails -v</span> / <span class="code-inline">bundle exec rails -v</span>）。<br>
+            ③ Ruby のバージョンが、狙う Rails をサポートしているかを確認します。
+          </p>
+          <p class="slide-sub">「今の状態を必ず保存 → どこからどこへ変えるか」をハッキリさせてから作業します。</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-title"><span>slide 2</span> / 既存アプリを下げる基本フロー</div>
+    <div class="slides-grid">
+      <section class="slide">
+        <div class="slide-inner">
+          <div class="slide-label">
+            <span>flow</span>
+            <span class="slide-index">03</span>
+          </div>
+          <h2 class="slide-title">5ステップの全体像</h2>
+          <p class="slide-main">
+            1. ターゲットバージョンを決める（例：7.1.6 → 7.1.3.2）。<br>
+            2. <span class="code-inline">Gemfile</span> の <span class="code-inline">gem "rails"</span> をそのバージョンに書き換える。<br>
+            3. <span class="code-inline">bundle update rails</span> を実行。<br>
+            4. <span class="code-inline">bundle exec rails -v</span> / <span class="code-inline">bin/rails -v</span> で確認。<br>
+            5. <span class="code-inline">bin/rails s</span> で起動して動作確認。
+          </p>
+          <p class="slide-sub">まずはこの「5ステップ」がベースになります。</p>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-inner">
+          <div class="slide-label">
+            <span>Gemfile edit</span>
+            <span class="slide-index">04</span>
+          </div>
+          <h2 class="slide-title">Gemfileの書き換え方</h2>
+          <p class="slide-main">
+            すでにバージョン指定がある場合：<br>
+            <span class="code-inline">gem "rails", "~&gt; 7.1.6"</span> → <span class="code-inline">gem "rails", "7.1.3.2"</span><br><br>
+            未指定の場合：<br>
+            <span class="code-inline">gem "rails"</span> → <span class="code-inline">gem "rails", "7.1.3.2"</span>
+          </p>
+          <p class="slide-sub">「どのバージョンに固定したいか」を Gemfile でハッキリ書くのが第一歩です。</p>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-inner">
+          <div class="slide-label">
+            <span>bundle</span>
+            <span class="slide-index">05</span>
+          </div>
+          <h2 class="slide-title">bundle update rails を実行</h2>
+          <p class="slide-main">
+            アプリのディレクトリで、<span class="code-inline">bundle update rails</span> を実行します。<br>
+            これで Rails 本体と依存関係が、指定したバージョンに合うよう再解決されます。
+          </p>
+          <p class="slide-sub">うまくいかない場合は、後半の「トラブル時のパターン」を参照します。</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="tips">
+      <span class="tips-strong">※注意：</span> <span class="code-inline">rm Gemfile.lock</span> → <span class="code-inline">bundle install</span> は「最終手段」。一気に全部のgemが取り直されるため、まずは <span class="code-inline">bundle update rails</span> から試すのが安全です。
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-title"><span>slide 3</span> / グローバルRailsと新規アプリ</div>
+    <div class="slides-grid">
+      <section class="slide">
+        <div class="slide-inner">
+          <div class="slide-label">
+            <span>global</span>
+            <span class="slide-index">06</span>
+          </div>
+          <h2 class="slide-title">グローバルRailsのバージョンを下げる</h2>
+          <p class="slide-main">
+            1. 現在の一覧を確認：<span class="code-inline">gem list rails</span><br>
+            2. 不要なバージョンを削除：<span class="code-inline">gem uninstall rails -v 7.1.6</span><br>
+            3. 使いたいバージョンを入れる：<span class="code-inline">gem install rails -v 7.1.3.2</span><br>
+            4. <span class="code-inline">rails -v</span> で確認。
+          </p>
+          <p class="slide-sub">「rails new のデフォルトを変えたい」ときに使う操作です。</p>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-inner">
+          <div class="slide-label">
+            <span>new app</span>
+            <span class="slide-index">07</span>
+          </div>
+          <h2 class="slide-title">指定バージョンで新規アプリを作る</h2>
+          <p class="slide-main">
+            グローバルを変えなくても、次のように書けばOKです：<br>
+            <span class="code-inline">rails _7.1.3.2_ new my_app</span>
+          </p>
+          <p class="slide-sub">この書き方を覚えておけば、複数バージョンを共存させたまま開発できます。</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-title"><span>slide 4</span> / トラブルシュート</div>
+    <div class="slides-grid">
+      <section class="slide">
+        <div class="slide-inner">
+          <div class="slide-label">
+            <span>issue</span>
+            <span class="slide-index">08</span>
+          </div>
+          <h2 class="slide-title">バージョンが変わらないとき</h2>
+          <p class="slide-main">
+            ① Gemfile の <span class="code-inline">gem "rails"</span> が本当に変わっているか確認。<br>
+            ② <span class="code-inline">bundle update rails</span> を実行したか確認。<br>
+            ③ <span class="code-inline">bundle why rails</span> で、他のgemが古いバージョンを要求していないかチェックします。
+          </p>
+          <p class="slide-sub">依存関係で縛られている場合は、そのgemのバージョンも合わせて調整します。</p>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-inner">
+          <div class="slide-label">
+            <span>ruby mismatch</span>
+            <span class="slide-index">09</span>
+          </div>
+          <h2 class="slide-title">Rubyバージョンの不一致エラー</h2>
+          <p class="slide-main">
+            <span class="code-inline">Your Ruby version is ... but your Gemfile specified ...</span> というエラーが出たら、<br>
+            1. <span class="code-inline">ruby -v</span> で実際のRubyを確認。<br>
+            2. Gemfile や <span class="code-inline">.ruby-version</span> の指定を確認。<br>
+            3. <span class="code-inline">rbenv</span> / <span class="code-inline">rvm</span> などで合わせるか、指定を現実に合わせて修正します。
+          </p>
+          <p class="slide-sub">ただし、Railsが対応しているRuby範囲は事前に確認しておきます。</p>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-inner">
+          <div class="slide-label">
+            <span>bin/rails</span>
+            <span class="slide-index">10</span>
+          </div>
+          <h2 class="slide-title">railsコマンドが変なバージョンを使うとき</h2>
+          <p class="slide-main">
+            まずは「アプリ内」で <span class="code-inline">bundle exec rails -v</span> / <span class="code-inline">bin/rails -v</span> を確認。<br>
+            必要なら、<span class="code-inline">bundle exec rake app:update:bin</span> で binstub を再生成します。
+          </p>
+          <p class="slide-sub">日常的には <span class="code-inline">bin/rails</span> を使う習慣にすると、バージョン迷子になりにくくなります。</p>
+        </div>
+      </section>
+    </div>
+
+    <p class="footer-note">
+      この1ページを上から順に追うだけで、ほとんどの「Railsのダウングレード作業」を安全にこなせるように構成しています。
+    </p>
+  </div>
+</body>
+</html>
